@@ -1,29 +1,37 @@
-sums = Array(Int32).new(1_000_001, 1)
-(2..500_000).each do |i|
-  (i + i..1_000_000).step(i) do |j|
-    sums[j] += i
-  end
-end
+require "json"
+
+# sums = Array(Int32).new(1_000_001, 1)
+# (2..500_000).each do |i|
+#   (i + i..1_000_000).step(i) do |j|
+#     sums[j] += i
+#   end
+# end
+
+# File.write("sums.txt", sums.to_json)
+
+sums = JSON.parse(File.read("sums.txt"))
 
 visited = Array(Bool).new(1_000_001, false)
-chains = Array(Int32).new(1_000_001, -1)
+chain_number = Array.new(1_000_001, 0)
 
-def travel(sums, e, i, c, visited, chains, path = [] of Int32)
-  return -10_000_000 if i > 1_000_000
-  chains[e] = c if e == i && visited[i] && chains[e] == -1
-  return chains[i] if visited[i]
+def travel(sums, visited, size, chain_number, i)
+  return -1_000_000 if i > 1_000_000
+  return size - chain_number[i] if visited[i]
   visited[i] = true
-  travel(sums, e, sums[i], c + 1, visited, chains)
-  chains[i] = chains[e]
+  chain_number[i] = size
+  travel(sums, visited, size + 1, chain_number, sums[i])
 end
+
+best = -1
+answer = -1
 
 (3..1_000_000).each do |e|
-  travel(sums, e, e, 0, visited, chains)
-end
-max = chains.max
-(1..1_000_000).each do |i|
-  if chains[i] == max
-    puts i
-    exit(0)
+  next if visited[e]
+  s = travel(sums, visited, 0, chain_number, e).as(Int32)
+  if s > best
+    best = s
+    answer = e
   end
 end
+
+puts answer
