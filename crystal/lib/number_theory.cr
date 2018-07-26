@@ -14,11 +14,28 @@ module NumberTheory
     mem[n] = f
   end
 
+  def dividers(n : Int128)
+    f = factors(n).group_by { |e| e }
+    r = 1_i128
+    f.each do |_, k|
+      r *= k.size + 1
+    end
+    r
+  end
+
+  def dividers(n : Int64)
+    dividers(n.to_i128).to_i164
+  end
+
   def factors(n : Int64)
-    i = 3_i64
-    factors = [] of Int64
+    factors(n.to_i64).map { |x| x.to_i64 }
+  end
+
+  def factors(n : Int128)
+    i = 3_i128
+    factors = [] of Int128
     while n.even?
-      factors << 2_i64
+      factors << 2_i128
       n /= 2
     end
     while i * i <= n
