@@ -105,19 +105,17 @@ module NumberTheory
       end
     end
 
-    def prime?(n)
+    def prime?(n : Int64)
       return false if n.even? && n != 2
       return false if n < 2
-      return @primes[n] if @calculated[n]?
       i = 0
-      @calculated[n] = true
       while @primes_list[i].to_i64**2 <= n
         if n % @primes_list[i] == 0
           return @primes[n] = false
         end
         i += 1
       end
-      return @primes[n] = true
+      true
     end
   end
 
