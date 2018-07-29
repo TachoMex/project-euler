@@ -54,7 +54,7 @@ module NumberTheory
     sieve[0] = true
     sieve[1] = true
 
-    2_i64.upto((n**0.5).to_i) do |i|
+    2.upto((n**0.5).to_i) do |i|
       next if sieve[i]
       (i + i...n).step(i) do |j|
         sieve[j] = true
@@ -64,10 +64,10 @@ module NumberTheory
     { primes, sieve }
   end
 
-  class PrimeTester
+  class PrimeTester(T)
     def initialize
-      @primes = {} of Int32 => Bool
-      @calculated = {} of Int32 => Bool
+      @primes = {} of T => Bool
+      @calculated = {} of T => Bool
       @primes[2] = true
       @calculated[2] = true
     end
@@ -83,6 +83,39 @@ module NumberTheory
           return @primes[n] = false
         end
         i += 2
+      end
+      return @primes[n] = true
+    end
+  end
+
+  class PrimeTesterWithSieve(Int64)
+    @primes_list : Array(Int32)
+
+    def initialize(max)
+      @primes_list, sieve = sieve(max)
+
+      @primes = {} of Int64 => Bool
+      @calculated = {} of Int64 => Bool
+      @primes[2] = true
+      @calculated[2] = true
+
+      sieve.each_with_index do |e, i|
+        @calculated[i.to_i64] = true
+        @primes[i.to_i64] = !sieve[i]
+      end
+    end
+
+    def prime?(n)
+      return false if n.even? && n != 2
+      return false if n < 2
+      return @primes[n] if @calculated[n]?
+      i = 0
+      @calculated[n] = true
+      while @primes_list[i].to_i64**2 <= n
+        if n % @primes_list[i] == 0
+          return @primes[n] = false
+        end
+        i += 1
       end
       return @primes[n] = true
     end
