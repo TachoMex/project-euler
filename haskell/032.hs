@@ -1,0 +1,1 @@
+mains = print <$> sum . reverse . nub . reverse $ map (\ (_, _, a) -> a)  $ filter (\(a, b, c) -> sort (show(a) ++ show(b) ++ show(c)) == "123456789") [(x, y, x * y)| x <- [1..9999], y <- [1..9999], x < y]
