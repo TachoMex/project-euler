@@ -99,10 +99,13 @@ end
 file = File.open("../096.in")
 sum = 0
 
+key = ""
+
 (1..50).each do
   sudoku = Sudoku.read(file)
   sudoku.solve
+  key += sudoku.grid[1].map{ |r| r.to_s }.join
   sum += sudoku.check_code
 end
 
-puts sum
+puts sum,key

@@ -1,3 +1,4 @@
+require "big"
 # Contains functions that helps on problems about number theory
 module NumberTheory
   def phi_e(n, mem = {} of Int64 => Int64)
@@ -14,6 +15,47 @@ module NumberTheory
     mem[n] = f
   end
 
+  def factorial_prime_factors(n : T, primes) forall T
+    ans = [] of T
+    i = 0
+    while i < primes.size && primes[i] <= n
+      count = 0
+      t = n
+      while t > 0
+        count += t // primes[i]
+        t //= primes[i]
+      end
+      ans << count
+      i += 1
+    end
+    ans
+  end
+
+
+  def modpow(a : T, b : T,  c : T) forall T
+    if b == 0
+      1
+    elsif b == 1
+      a
+    else
+      h = b//2
+      t = modpow(a, h, c)
+      t * t % c * modpow(a, b % 2, c) % c
+    end
+  end
+
+  def inv(a : T, b : T) forall T
+    modpow(a, b - 2, b)
+  end
+
+
+  def extended_euclidean(a,b)
+    return [a, BigInt.new(1), BigInt.new(0)] if b.zero?
+
+    d, x, y = extended_euclidean(b, a % b)
+    [d, y , x - BigInt.new(a/b) * y]
+  end
+
   def dividers(n : Int128)
     f = factors(n).group_by { |e| e }
     r = 1_i128
@@ -27,21 +69,31 @@ module NumberTheory
     dividers(n.to_i128).to_i164
   end
 
-  def factors(n : Int64)
-    factors(n.to_i64).map { |x| x.to_i64 }
+  def divs_from_factors(n : Int128)
+    divs = [1i128]
+    factors(n).group_by { |v| v }.to_h { |k, v| { k, v.size } }.each do |p, b|
+      divs_2 = [] of Int128
+      (0..b).each do |i|
+        divs.each do |d|
+          divs_2 << d * p ** i
+        end
+      end
+      divs = divs_2
+    end
+    divs
   end
 
-  def factors(n : Int128)
-    i = 3_i128
-    factors = [] of Int128
+  def factors(n : T) forall T
+    i = T.new(3)
+    factors = [] of T
     while n.even?
-      factors << 2_i128
-      n /= 2
+      factors << T.new(2)
+      n = n//2
     end
     while i * i <= n
       while (n % i).zero?
         factors << i
-        n /= i
+        n //= i
       end
       i += 2
     end
@@ -64,6 +116,23 @@ module NumberTheory
     { primes, sieve }
   end
 
+  def longest_prime_divisor_sieve(n)
+    sieve = Array.new(n, false)
+    parent = Array.new(n, -1)
+    sieve[0] = true
+    sieve[1] = true
+
+    (2...n).each do |i|
+      next if sieve[i]
+      (i + i...n).step(i) do |j|
+        sieve[j] = true
+        parent[j] = i
+      end
+    end
+    primes = (1...n).select { |p| !sieve[p] }
+    { primes, sieve, parent }
+  end
+
   class PrimeTester(T)
     def initialize
       @primes = {} of T => Bool
@@ -76,7 +145,7 @@ module NumberTheory
       return false if n.even? && n != 2
       return false if n < 2
       return @primes[n] if @calculated[n]?
-      i = 3
+      i = T.new(3)
       @calculated[n] = true
       while i * i <= n
         if n % i == 0
@@ -119,6 +188,42 @@ module NumberTheory
     end
   end
 
+  def prime_factors(n, primes)
+    result = [] of Int32
+    i = 0
+    while n > 1
+      count = 0
+      while n % primes[i] == 0
+        count += 1
+        n //= primes[i]
+      end
+      i += 1
+      result << count
+    end
+    result
+  end
+
+  def prime_factors_expanded(n : T, primes) forall T
+    result = [] of T
+    i = 0
+    while n > 1
+      while n % primes[i] == 0
+        result << primes[i]
+        n //= primes[i]
+      end
+      i += 1
+    end
+    result
+  end
+
+  def gcd(a, b)
+    b == 0 ? a.abs : gcd(b, a % b)
+  end
+
+  def lcm(a, b)
+    a // gcd(a, b) * b
+  end
+
   def pentagon_number(n : Int64)
     n * (3 * n - 1) / 2
   end
@@ -154,6 +259,21 @@ module NumberTheory
       end
     end
     false
+  end
+
+  def binary_search_min_true(left : T, right : T) forall T
+    last = -1
+    while left <= right
+      med = (left + right) // 2
+      f_med = yield(med)
+      if f_med
+        left = med + 1
+        last = med
+      else
+        right = med - 1
+      end
+    end
+    last
   end
 
   def pentagon_number?(n)
