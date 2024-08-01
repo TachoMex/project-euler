@@ -3,6 +3,10 @@ class Matrix
     @matrix = matrix
   end
 
+  def raw
+    @matrix.clone
+  end
+
   def size
     @matrix.size
   end
@@ -29,6 +33,12 @@ class Matrix
     puts " ------------- "
   end
 
+  def show(n = 3)
+    @matrix.each do |row|
+      puts row.map { |v| v.round(n).to_s.ljust(2 * n + 1) }.join(" ")
+    end
+  end
+
   def swap_row(a, b)
     return if a == b
     (0...size).each do |i|
@@ -43,8 +53,9 @@ class Matrix
     r = Matrix.identity(@matrix.size)
     show(m, r)
     (0...size).each do |i|
-      pivot_row = (i...size).find { |p| m[p][i] == 0}
-      puts i
+      pivot_row = (i...size).find { |p| m[p][i] != 0}
+      # puts i
+      # show(m, r)
   		raise "Matrix has no inverse" if pivot_row.nil?
       m.swap_row(i, pivot_row)
       r.swap_row(i, pivot_row)
@@ -67,7 +78,7 @@ class Matrix
     	end
     end
 
-    show(@matrix, r)
+    # show(@matrix, r)
     r
   end
 

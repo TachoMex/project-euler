@@ -18,6 +18,7 @@ r_b = 1
     next if b / d1 != bd / d2
     r_a *= ad
     r_b *= bd
+    puts "#{a}/#{b}"
   end
 end
 r_d = r_a.gcd(r_b)

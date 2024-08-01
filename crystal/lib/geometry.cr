@@ -10,6 +10,18 @@ module Geometry
     cross(b - a, c - a)
   end
 
+  def angle_between(x1, y1, x2, y2, x3, y3)
+    ax = x1 - x2
+    ay = y1 - y2
+    cx = x3 - x2
+    cy = y3 - y2
+    a = Math.atan2(ay, ax)
+    c = Math.atan2(cy, cx)
+    a += Math::PI * 2.0 if a < 0
+    c += Math::PI * 2.0  if c < 0
+    a > c ? (Math::PI * 2 + c - a) : (c - a)
+  end
+
   class Point(T)
     getter :x, :y
 

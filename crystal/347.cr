@@ -63,7 +63,6 @@ def m(p, q, n, primes)
     end
     pp *= p
   end
-  raise "kk" if ans == 0
   ans
 end
 
@@ -73,7 +72,7 @@ primes = primes.map { |p| BigInt.new(p) }
 
 primes.each_with_index do |p, idx|
   break if p * primes[idx] + 1 > N
-  puts p
+  # puts p
   (idx + 1...primes.size).each do |idx2|
     q = primes[idx2]
     pq = p * q
@@ -82,7 +81,7 @@ primes.each_with_index do |p, idx|
     pqq = q.to_big_i * p.to_big_i ** 2i128
 
     s = Math.max(m(p.to_big_i, q.to_big_i, N, primes), m(q.to_big_i, p.to_big_i, N, primes))
-    puts({s, p, q}) if idx2 % 100000 == 0
+    # puts({s, p, q}) if idx2 % 100000 == 0
     sum += s if s
   end
   puts "#{sum} #{idx}/#{primes.size}"

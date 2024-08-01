@@ -15,6 +15,31 @@ module NumberTheory
     mem[n] = f
   end
 
+  def phi_e(n : T) forall T
+    f = factors(n)
+        .group_by { |v| v }
+        .values
+        .map do |r|
+          p = r[0]
+          s = r.size
+          (p - 1) * p**(s - 1)
+        end
+        .product
+    f
+  end
+
+  def phi_e(facts : Array(T)) forall T
+    facts.group_by { |v| v }
+         .values
+         .map do |r|
+            p = r[0]
+            s = r.size
+            (p - 1) * p**(s - 1)
+          end
+         .product
+  end
+
+
   def factorial_prime_factors(n : T, primes) forall T
     ans = [] of T
     i = 0
@@ -34,7 +59,7 @@ module NumberTheory
 
   def modpow(a : T, b : T,  c : T) forall T
     if b == 0
-      1
+      T.new(1)
     elsif b == 1
       a
     else
@@ -48,12 +73,16 @@ module NumberTheory
     modpow(a, b - 2, b)
   end
 
+  def inv_euclid(a : T , b : T) forall T
+    d, x, y = extended_euclidean(a.to_big_i, b.to_big_i)
+    d == 1 ? (x % b + b) % b : -999999
+  end
 
   def extended_euclidean(a,b)
     return [a, BigInt.new(1), BigInt.new(0)] if b.zero?
 
     d, x, y = extended_euclidean(b, a % b)
-    [d, y , x - BigInt.new(a/b) * y]
+    [d, y , x - BigInt.new(a//b) * y]
   end
 
   def dividers(n : Int128)
@@ -73,6 +102,20 @@ module NumberTheory
     divs = [1i128]
     factors(n).group_by { |v| v }.to_h { |k, v| { k, v.size } }.each do |p, b|
       divs_2 = [] of Int128
+      (0..b).each do |i|
+        divs.each do |d|
+          divs_2 << d * p ** i
+        end
+      end
+      divs = divs_2
+    end
+    divs
+  end
+
+  def divs_from_factors(n : BigInt)
+    divs = [1.to_big_i]
+    factors(n).group_by { |v| v }.to_h { |k, v| { k, v.size } }.each do |p, b|
+      divs_2 = [] of BigInt
       (0..b).each do |i|
         divs.each do |d|
           divs_2 << d * p ** i
@@ -131,6 +174,11 @@ module NumberTheory
     end
     primes = (1...n).select { |p| !sieve[p] }
     { primes, sieve, parent }
+  end
+
+  def fermat_prime?(n : T) forall T
+    return false if [10, 21, 101].includes?(n)
+    modpow(T.new(6), n, n) == 6 || n == 2 || n == 3
   end
 
   class PrimeTester(T)
@@ -207,11 +255,53 @@ module NumberTheory
     result = [] of T
     i = 0
     while n > 1
-      while n % primes[i] == 0
+      break if i == primes.size || primes[i]**2 > n
+      while i < primes.size && n % primes[i] == 0
         result << primes[i]
         n //= primes[i]
       end
       i += 1
+    end
+    result << n if n != 1
+    result
+  end
+
+  def prime_factors_expanded(n : T, primes, sieve : Array(Bool)) forall T
+    result = [] of T
+    i = 0
+    while n > 1
+      break if i == primes.size || primes[i]**2 > n
+      break if n < sieve.size && !sieve[n]
+      while i < primes.size && n % primes[i] == 0
+        result << primes[i]
+        n //= primes[i]
+      end
+      i += 1
+    end
+    result << n if n != 1
+    result
+  end
+
+  def pollard_rho_prime_factors(n : Int64, fixture = -1)
+    x = 2i64
+    y = 2i64
+    d = 1i64
+
+    result = [] of Int64
+    while n > 1
+      g = -> (x : Int64) { (x ** 2 + fixture) % n }
+      while d == 1
+        x = g.call(x)
+        y = g.call(g.call(y))
+        d = gcd((x - y).abs, n)
+      end
+
+      if d == n
+        result << d
+        return result
+      else
+        return pollard_rho_prime_factors(n //= d, -fixture) + pollard_rho_prime_factors(d, -fixture)
+      end
     end
     result
   end
@@ -296,7 +386,35 @@ module NumberTheory
     binary_search(n, 1_i64, (n ** 0.7).to_i64) { |x| octagonal_number(x) }
   end
 
-  def square_number?(n)
-    (n ** 0.5).to_i ** 2 == n
+  def cube_number?(n : BigInt)
+    i, j = 1.to_big_i, n
+    while i <= j
+      k = (i + j) // 2
+      f_k = k**3
+      if f_k == n
+        return true
+      elsif f_k > n
+        j = k - 1
+      else 
+        i = k + 1
+      end
+    end
+    false
+  end
+
+  def square_number?(n : BigInt)
+    i, j = 1.to_big_i, n
+    while i <= j
+      k = (i + j) // 2
+      f_k = k**2
+      if f_k == n
+        return true
+      elsif f_k > n
+        j = k - 1
+      else 
+        i = k + 1
+      end
+    end
+    false
   end
 end
